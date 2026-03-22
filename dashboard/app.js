@@ -279,7 +279,9 @@ $('btn-gps-history')?.addEventListener('click', async () => {
 
 // Toggle buttons (camera / screen / mic)
 function setupToggleBtn(btnId, startAction, stopAction, streamKey, indicatorId, label) {
-  $(btnId).addEventListener('click', async () => {
+  const domBtn = $(btnId);
+  if (!domBtn) return;
+  domBtn.addEventListener('click', async () => {
     const streaming = isStreaming[streamKey];
     const action = streaming ? stopAction : startAction;
 
@@ -339,11 +341,11 @@ function resetStreamButtons() {
   isStreaming = { camera: false, screen: false, mic: false };
   ['btn-camera', 'btn-screen', 'btn-mic'].forEach(id => {
     const btn = $(id);
-    btn.classList.remove('active');
+    btn?.classList.remove('active');
   });
-  $('btn-camera').textContent = 'Start Camera';
-  $('btn-screen').textContent = 'Start Screen';
-  $('btn-mic').textContent = 'Start Mic';
+  if ($('btn-camera')) $('btn-camera').textContent = 'Start Camera';
+  if ($('btn-screen')) $('btn-screen').textContent = 'Start Screen';
+  if ($('btn-mic')) $('btn-mic').textContent = 'Start Mic';
   ['camera-indicator', 'screen-indicator', 'mic-indicator'].forEach(id => {
     $(id)?.classList.remove('active');
   });
@@ -370,7 +372,7 @@ if (btnFeedClose) {
     }
     if (isStreaming.screen) {
       window.closing_screen = true;
-      $('btn-screen').click();
+      $('btn-screen')?.click();
     }
   });
 }
