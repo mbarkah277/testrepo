@@ -89,15 +89,12 @@ mkdir -p $APP_DIR/uploads/audio
 PGPASSWORD=$DB_PASS psql -h 127.0.0.1 -U $DB_USER -d $DB_NAME -f $APP_DIR/backend/schema.sql
 echo "✅  Database schema applied"
 
-# Prevent Out-of-Memory (OOM) on 512MB/1GB VPS during compilation
-if [ $(free -m | awk '/^Swap:/ {print $2}') -eq 0 ]; then
-    echo "⚠️  No SWAP detected. Creating 2GB temporary SWAP file..."
-    fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
-    chmod 600 /swapfile
-    mkswap /swapfile
-    swapon /swapfile
-    echo "/swapfile none swap sw 0 0" >> /etc/fstab
-fi
+# Mengatasi Masalah Kompilator Go Pingsan (Out Of Memory / Root Partition Full)
+# Karena Server CasaOS menolak pembuatan Swap Memory virtual, kita paksa Go untuk merakit secara sangat perlahan (1 Core) dan memindahkan semua chache download ke dalam folder project (menghindari /root/go/ yang sempit).
+export GOMODCACHE="$APP_DIR/gocache"
+export GOCACHE="$APP_DIR/gobuildcache"
+export GOMAXPROCS=1
+export GOGC=50
 
 # Compile binary.
 cd $APP_DIR/backend
