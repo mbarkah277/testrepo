@@ -92,7 +92,7 @@ echo "✅  Database schema applied"
 # Compile binary.
 cd $APP_DIR/backend
 /usr/local/go/bin/go mod tidy
-/usr/local/go/bin/go build -o $APP_DIR/familysync-server ./...
+/usr/local/go/bin/go build -o $APP_DIR/familysync-server .
 echo "✅  Binary compiled: $APP_DIR/familysync-server"
 
 # ── 6. PM2 process manager ────────────────────────────────────
