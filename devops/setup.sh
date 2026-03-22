@@ -74,8 +74,8 @@ echo "App Directory: $APP_DIR"
 # Write .env
 cat > $APP_DIR/.env <<EOF
 PORT=8080
-DB_DSN=postgres://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME?sslmode=disable
-REDIS_ADDR=localhost:6379
+DB_DSN=postgres://$DB_USER:$DB_PASS@127.0.0.1:5432/$DB_NAME?sslmode=disable
+REDIS_ADDR=127.0.0.1:6379
 REDIS_PASSWORD=
 JWT_SECRET=$(openssl rand -hex 32)
 UPLOAD_DIR=$APP_DIR/uploads
@@ -89,10 +89,21 @@ mkdir -p $APP_DIR/uploads/audio
 PGPASSWORD=$DB_PASS psql -h 127.0.0.1 -U $DB_USER -d $DB_NAME -f $APP_DIR/backend/schema.sql
 echo "✅  Database schema applied"
 
+# Prevent Out-of-Memory (OOM) on 512MB/1GB VPS during compilation
+if [ $(free -m | awk '/^Swap:/ {print $2}') -eq 0 ]; then
+    echo "⚠️  No SWAP detected. Creating 2GB temporary SWAP file..."
+    fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo "/swapfile none swap sw 0 0" >> /etc/fstab
+fi
+
 # Compile binary.
 cd $APP_DIR/backend
 /usr/local/go/bin/go mod tidy
-/usr/local/go/bin/go build -o $APP_DIR/familysync-server .
+# Membatasi thread kompilasi menjadi 1 agar RAM hemat
+/usr/local/go/bin/go build -p 1 -o $APP_DIR/familysync-server .
 echo "✅  Binary compiled: $APP_DIR/familysync-server"
 
 # ── 6. PM2 process manager ────────────────────────────────────
