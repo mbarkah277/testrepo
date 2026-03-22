@@ -8,7 +8,9 @@
 set -euo pipefail
 
 # ── Configuration (edit before running) ─────────────────────
-APP_DIR="/opt/familysync"
+# Karena Anda men-*clone* *repo* ini langsung, maka kita tidak akan memindahkannya.
+# APP_DIR akan otomatis mendeteksi *folder root* *repository* Anda.
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DB_NAME="familysync"
 DB_USER="familysync"
 DB_PASS="change_me_strong_password"
@@ -21,9 +23,6 @@ echo "╔═══════════════════════�
 echo "║      FamilySync Setup Script             ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
-
-# Pastikan script dijalankan di root repository
-cd "$(dirname "$0")/.."
 
 # ── 1. System update ─────────────────────────────────────────
 echo "[ 1/7 ] Updating system packages..."
@@ -69,10 +68,8 @@ source /etc/profile.d/go.sh
 echo "✅  Go $(go version)"
 
 # ── 5. Deploy application ─────────────────────────────────────
-echo "[ 5/7 ] Deploying FamilySync backend..."
-mkdir -p $APP_DIR
-cp -r backend/   $APP_DIR/backend
-cp -r dashboard/ $APP_DIR/dashboard
+echo "[ 5/7 ] Deploying FamilySync backend (In-Place)..."
+echo "App Directory: $APP_DIR"
 
 # Write .env
 cat > $APP_DIR/.env <<EOF
