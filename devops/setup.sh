@@ -85,7 +85,8 @@ EOF
 mkdir -p $APP_DIR/uploads/audio
 
 # Apply schema.
-PGPASSWORD=$DB_PASS psql -U $DB_USER -d $DB_NAME -f $APP_DIR/backend/schema.sql
+# Memaksa koneksi via localhost (TCP) untuk menghindari "Peer authentication failed"
+PGPASSWORD=$DB_PASS psql -h 127.0.0.1 -U $DB_USER -d $DB_NAME -f $APP_DIR/backend/schema.sql
 echo "✅  Database schema applied"
 
 # Compile binary.
