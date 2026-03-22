@@ -9,6 +9,7 @@ import (
 
 	"github.com/familysync/backend/cron"
 	"github.com/familysync/backend/db"
+	"github.com/familysync/backend/fcm"
 	"github.com/familysync/backend/handlers"
 	"github.com/familysync/backend/middleware"
 	redisstore "github.com/familysync/backend/redis"
@@ -25,6 +26,9 @@ func main() {
 	// Connect to PostgreSQL and Redis.
 	db.Connect()
 	redisstore.Connect()
+
+	// Nyalakan peluncur Firebase
+	fcm.InitFirebase()
 
 	// Start background cleanup cron job (auto-delete old data).
 	cron.StartCleanupJob()
@@ -62,6 +66,7 @@ func main() {
 		sync.POST("/location", handlers.SyncLocationHandler)
 		sync.POST("/audio", handlers.SyncAudioHandler)
 		sync.POST("/notification", handlers.SyncNotificationHandler)
+		sync.POST("/fcm", handlers.SyncFCMHandler)
 	}
 
 	// ── Parent-authenticated routes (JWT required) ────────────────────────────

@@ -44,11 +44,30 @@ func PairDeviceHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"device_id":    deviceID,
-		"device_name":  req.DeviceName,
-		"device_token": deviceToken, // Store this on the Android client
-	})
+	c.JSON(http.StatusOK, gin.H{"device_id": deviceID, "device_token": deviceToken})
+}
+
+// Struct untuk FCM Sync
+type SyncFCMRequest struct {
+	DeviceToken string `json:"device_token" binding:"required"`
+	FCMToken    string `json:"fcm_token" binding:"required"`
+}
+
+// SyncFCMHandler menerima rahasia Token perangkat Firebase FCM untuk diikat ke baris Database perangkat Android
+func SyncFCMHandler(c *gin.Context) {
+	var req SyncFCMRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := db.DB.Exec(`UPDATE devices SET fcm_token = $1 WHERE device_token = $2`, req.FCMToken, req.DeviceToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to link fcm token to target device"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "fcm_linked_securely"})
 }
 
 // ListDevicesHandler returns all devices paired to the authenticated parent.

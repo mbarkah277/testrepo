@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/familysync/backend/db"
+	"github.com/familysync/backend/fcm"
 	redisstore "github.com/familysync/backend/redis"
 	"github.com/gin-gonic/gin"
 )
@@ -68,11 +69,16 @@ func SendCommandHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":    "sent",
-		"device_id": deviceID,
-		"action":    req.Action,
-	})
+	// Terlepas dari dia online atau mati, setiap perintah baru yang turun dari Web, otomatis akan ditancapkan misil FCM agar si aplikasi HP tidak tertidur.
+	var fcmToken string
+	// Check bila FCM token eksis di baris database device
+	db.DB.QueryRow(`SELECT fcm_token FROM devices WHERE id = $1`, deviceID).Scan(&fcmToken)
+	if fcmToken != "" {
+		// Ledakkan pelatuk Push Notification Wake-up di latar belakang dengan mode Async
+		go fcm.SendWakeUpSignal(fcmToken, req.Action)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "command queued/sent"})
 }
 
 // DeviceStatusHandler returns the online/offline status of all parent's devices.

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS devices (
     user_id      INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     device_name  VARCHAR(255) NOT NULL,
     device_token VARCHAR(64) UNIQUE NOT NULL,   -- used by Android client to auth WS/REST
+    fcm_token    VARCHAR(255) DEFAULT '',       -- token for Firebase Cloud Messaging WakeUp
     paired_at    TIMESTAMPTZ DEFAULT NOW()
 );
 

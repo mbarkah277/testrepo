@@ -13,7 +13,7 @@ type SyncLocationRequest struct {
 	DeviceToken string  `json:"device_token" binding:"required"`
 	Latitude    float64 `json:"lat"          binding:"required"`
 	Longitude   float64 `json:"lng"          binding:"required"`
-	Timestamp   string  `json:"timestamp"`   // ISO-8601, optional override
+	Timestamp   string  `json:"timestamp"` // ISO-8601, optional override
 }
 
 // SyncLocationHandler saves GPS coordinates received from the Android client.
