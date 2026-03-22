@@ -394,6 +394,7 @@ body {
 
 /* ── Utilities ──────────────────────────────── */
 .hidden     { display: none !important; }
+.mobile-only { display: none !important; }
 .error-msg  { color: var(--danger); font-size: .8rem; padding: .5rem; background: #ff5a5a11; border-radius: var(--radius-sm); margin-bottom: .5rem; }
 .center-text { text-align: center; margin-top: 1rem; font-size: .85rem; color: var(--muted); }
 .center-text a { color: var(--accent); text-decoration: none; }
@@ -536,19 +537,17 @@ body {
   }
 
   .sidebar-footer {
-    display: none; /* Tombol logout pindah ke atas atau sembunyikan sementara via CSS, nanti kita atur di header */
+    display: none;
   }
 
-  /* Biar ada tombol Sign Out di header Mobile */
-  .sidebar-logo::after {
-    content: "Sign Out";
-    margin-left: auto;
-    font-size: 0.8rem;
-    color: var(--danger);
-    cursor: pointer;
-    font-weight: 500;
-    pointer-events: auto;
-    /* This connects to the logout functionality directly via JS if we catch click on sidebar-logo, but for CSS we just style it */
+  .sidebar-logo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mobile-only {
+    display: flex !important;
   }
 
   .main-content {

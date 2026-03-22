@@ -76,6 +76,7 @@ func main() {
 		api.POST("/device/pair", handlers.PairDeviceHandler)
 		api.GET("/device/list", handlers.ListDevicesHandler)
 		api.GET("/device/status", handlers.DeviceStatusHandler)
+		api.DELETE("/device/:device_id", handlers.DeleteDeviceHandler)
 
 		// History queries
 		api.GET("/device/:device_id/location", handlers.GetLocationHistoryHandler)

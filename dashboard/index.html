@@ -95,11 +95,14 @@
 
       <!-- Header -->
       <div class="panel-header">
-        <div>
+        <div style="flex:1">
           <h2 id="panel-device-name">Device Name</h2>
           <span id="panel-status-badge" class="status-badge offline">Offline</span>
         </div>
-        <button id="refresh-status-btn" class="btn btn-ghost btn-sm">↻ Refresh</button>
+        <div style="display:flex;gap:.5rem;">
+          <button id="refresh-status-btn" class="btn btn-ghost btn-sm">↻ Refresh</button>
+          <button id="delete-device-btn" class="btn btn-ghost btn-sm" style="color:var(--danger)">🗑️ Delete</button>
+        </div>
       </div>
 
       <!-- ── Control Buttons ───────────────────────────────── -->

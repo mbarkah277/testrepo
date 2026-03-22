@@ -215,6 +215,25 @@ $('refresh-status-btn').addEventListener('click', async () => {
   updateOnlineBadge();
 });
 
+// Delete Device Button logic
+$('delete-device-btn')?.addEventListener('click', async () => {
+  if (!selectedDevice) return;
+  const confirmDelete = confirm(`⚠️ Are you sure you want to DELETE "${selectedDevice.device_name}"?\n\nThis will completely unpair the device from your account. The child's phone app will need to be re-paired manually if you want to monitor it again.`);
+  
+  if (confirmDelete) {
+    const { ok, data } = await apiFetch(`/api/v1/device/${selectedDevice.id}`, 'DELETE');
+    if (ok) {
+      alert("Device successfully removed!");
+      selectedDevice = null;
+      $('device-panel').classList.add('hidden');
+      $('empty-state').classList.remove('hidden');
+      await loadDashboard(); // refresh left sidebar
+    } else {
+      alert(`Delete failed: ${data.error || 'Server error'}`);
+    }
+  }
+});
+
 // ══════════════════════════════════════════════
 //  Command Dispatch
 // ══════════════════════════════════════════════

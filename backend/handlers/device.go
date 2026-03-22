@@ -102,3 +102,24 @@ func ListDevicesHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"devices": devices})
 }
+
+// DeleteDeviceHandler removes a device from the database
+// DELETE /api/v1/device/:device_id
+func DeleteDeviceHandler(c *gin.Context) {
+	deviceID := c.Param("device_id")
+	userID := c.GetInt64("user_id")
+
+	result, err := db.DB.Exec(`DELETE FROM devices WHERE id = $1 AND user_id = $2`, deviceID, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete device"})
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "device not found or access denied"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "deleted successfully"})
+}
