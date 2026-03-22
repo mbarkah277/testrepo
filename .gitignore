@@ -1,0 +1,23 @@
+# General
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+
+# Backend
+backend/.env
+backend/uploads/
+backend/tmp/
+backend/*.exe
+backend/*.exe~
+backend/*.dll
+backend/*.so
+backend/*.dylib
+
+# Android (Excluded intentionally)
+android/
