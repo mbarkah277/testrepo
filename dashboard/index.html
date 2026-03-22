@@ -120,16 +120,19 @@
               Get GPS Now
             </button>
             <div style="display:flex; gap: 8px; margin-bottom: 8px;">
-              <select id="gps-history-date" class="btn btn-ghost" style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text);">
+              <select id="gps-history-date" class="btn btn-ghost"
+                style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text);">
                 <option value="today">Today</option>
                 <option value="yesterday">Yesterday</option>
               </select>
             </div>
             <div style="display:flex; gap: 8px;">
-               <input type="date" id="gps-history-specific" class="btn btn-ghost" style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text);" title="Or pick specific date" />
-               <button id="btn-gps-history" class="btn btn-primary" style="flex:1.5;">
-                 Get History
-               </button>
+              <input type="date" id="gps-history-specific" class="btn btn-ghost"
+                style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text);"
+                title="Or pick specific date" />
+              <button id="btn-gps-history" class="btn btn-primary" style="flex:1.5;">
+                Get History
+              </button>
             </div>
             <div id="gps-result" class="result-text hidden" style="margin-top: 12px;"></div>
           </div>
@@ -147,7 +150,7 @@
           </div>
 
           <!-- Screen -->
-          <div class="control-card" id="screen-card">
+          <!-- <div class="control-card" id="screen-card">
             <div class="control-header">
               <span class="control-icon">🖥️</span>
               <span class="control-label">Screen</span>
@@ -156,7 +159,7 @@
             <button id="btn-screen" class="btn btn-accent btn-full" data-action="START_SCREEN" data-stop="STOP_SCREEN">
               Start Screen
             </button>
-          </div>
+          </div> -->
 
           <!-- Microphone -->
           <div class="control-card" id="mic-card">
