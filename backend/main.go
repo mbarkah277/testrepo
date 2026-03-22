@@ -39,9 +39,15 @@ func main() {
 	r := gin.Default()
 
 	// ── Serve parent dashboard as static files ────────────────────────────────
-	r.StaticFile("/", "../dashboard/index.html")
-	r.StaticFile("/app.js", "../dashboard/app.js")
-	r.StaticFile("/style.css", "../dashboard/style.css")
+	// Automatic Working Directory detection (In-Place deploy via PM2 vs Local Go run)
+	dashboardDir := "./dashboard"
+	if _, err := os.Stat(dashboardDir); os.IsNotExist(err) {
+		dashboardDir = "../dashboard"
+	}
+
+	r.StaticFile("/", dashboardDir+"/index.html")
+	r.StaticFile("/app.js", dashboardDir+"/app.js")
+	r.StaticFile("/style.css", dashboardDir+"/style.css")
 
 	// ── Public auth routes ────────────────────────────────────────────────────
 	auth := r.Group("/api/v1/auth")
