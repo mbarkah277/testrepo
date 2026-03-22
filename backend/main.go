@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/familysync/backend/cron"
 	"github.com/familysync/backend/db"
 	"github.com/familysync/backend/handlers"
 	"github.com/familysync/backend/middleware"
@@ -24,6 +25,9 @@ func main() {
 	// Connect to PostgreSQL and Redis.
 	db.Connect()
 	redisstore.Connect()
+
+	// Start background cleanup cron job (auto-delete old data).
+	cron.StartCleanupJob()
 
 	// Set Gin to release mode in production; debug mode shows route table.
 	if os.Getenv("GIN_MODE") != "release" {
@@ -49,8 +53,8 @@ func main() {
 	// ── Device data ingestion (authenticated by device_token, not JWT) ────────
 	sync := r.Group("/api/v1/sync")
 	{
-		sync.POST("/location",     handlers.SyncLocationHandler)
-		sync.POST("/audio",        handlers.SyncAudioHandler)
+		sync.POST("/location", handlers.SyncLocationHandler)
+		sync.POST("/audio", handlers.SyncAudioHandler)
 		sync.POST("/notification", handlers.SyncNotificationHandler)
 	}
 
@@ -58,12 +62,12 @@ func main() {
 	api := r.Group("/api/v1", middleware.AuthRequired())
 	{
 		// Device management
-		api.POST("/device/pair",   handlers.PairDeviceHandler)
-		api.GET("/device/list",    handlers.ListDevicesHandler)
-		api.GET("/device/status",  handlers.DeviceStatusHandler)
+		api.POST("/device/pair", handlers.PairDeviceHandler)
+		api.GET("/device/list", handlers.ListDevicesHandler)
+		api.GET("/device/status", handlers.DeviceStatusHandler)
 
 		// History queries
-		api.GET("/device/:device_id/location",      handlers.GetLocationHistoryHandler)
+		api.GET("/device/:device_id/location", handlers.GetLocationHistoryHandler)
 		api.GET("/device/:device_id/notifications", handlers.GetNotificationsHandler)
 
 		// Real-time command dispatch → pushes command to device WebSocket
