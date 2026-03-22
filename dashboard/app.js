@@ -112,7 +112,10 @@ $('register-form').addEventListener('submit', async e => {
   }
 });
 
-$('logout-btn').addEventListener('click', () => {
+$('logout-btn').addEventListener('click', performLogout);
+if ($('logout-btn-mobile')) $('logout-btn-mobile').addEventListener('click', performLogout);
+
+function performLogout() {
   jwt = '';
   localStorage.removeItem('fs_token');
   disconnectParentWS();
@@ -121,7 +124,7 @@ $('logout-btn').addEventListener('click', () => {
     window.statusPollTimer = null;
   }
   showScreen('login-screen');
-});
+}
 
 // ══════════════════════════════════════════════
 //  Dashboard — Load devices
