@@ -22,6 +22,9 @@ echo "║      FamilySync Setup Script             ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
+# Pastikan script dijalankan di root repository
+cd "$(dirname "$0")/.."
+
 # ── 1. System update ─────────────────────────────────────────
 echo "[ 1/7 ] Updating system packages..."
 apt-get update -q && apt-get upgrade -y -q
