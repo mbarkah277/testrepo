@@ -51,21 +51,10 @@ func SendCommandHandler(c *gin.Context) {
 		return
 	}
 
-	// Check if device is online.
-	if !redisstore.IsOnline(c.Request.Context(), deviceID) {
-		c.JSON(http.StatusNotFound, gin.H{"error": "device is offline"})
-		return
-	}
-
 	// Build and send the command JSON.
 	payload, err := json.Marshal(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encode command"})
-		return
-	}
-
-	if !GlobalHub.SendToDevice(deviceID, payload) {
-		c.JSON(http.StatusGone, gin.H{"error": "device WebSocket not available"})
 		return
 	}
 
@@ -78,7 +67,18 @@ func SendCommandHandler(c *gin.Context) {
 		go fcm.SendWakeUpSignal(fcmToken, req.Action)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "command queued/sent"})
+	// Check if device is actually online in real-time.
+	isOnline := redisstore.IsOnline(c.Request.Context(), deviceID)
+	if !isOnline || !GlobalHub.SendToDevice(deviceID, payload) {
+		if fcmToken != "" {
+			c.JSON(http.StatusOK, gin.H{"status": "Device was offline, but Wake-up signal has been fired via Firebase! Please wait 5 seconds and try again."})
+			return
+		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "device is offline and no FCM token registered"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "command sent actively over WebSocket and FCM"})
 }
 
 // DeviceStatusHandler returns the online/offline status of all parent's devices.
