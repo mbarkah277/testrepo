@@ -50,6 +50,11 @@ async function apiFetch(path, method = 'GET', body = null, auth = true) {
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(API_BASE + path, opts);
   const data = await res.json().catch(() => ({}));
+
+  if (res.status === 401 && path !== '/api/v1/auth/login' && path !== '/api/v1/auth/register') {
+    performLogout();
+  }
+
   return { ok: res.ok, status: res.status, data };
 }
 
@@ -123,7 +128,7 @@ function performLogout() {
     clearInterval(window.statusPollTimer);
     window.statusPollTimer = null;
   }
-  showScreen('login-screen');
+  window.location.reload();
 }
 
 // ══════════════════════════════════════════════
@@ -132,12 +137,15 @@ function performLogout() {
 async function loadDashboard() {
   showScreen('dashboard-screen');
   const { ok, data } = await apiFetch('/api/v1/device/list');
-  if (!ok) { jwt = ''; showScreen('login-screen'); return; }
+  if (!ok) {
+    performLogout();
+    return;
+  }
 
   devices = data.devices || [];
   renderDeviceNav();
   await refreshStatuses();
-  
+
   // Auto-refresh ping agar indikator abu-abu/hijau terupdate real-time setiap 10 detik
   if (!window.statusPollTimer) {
     window.statusPollTimer = setInterval(async () => {
@@ -219,7 +227,7 @@ $('refresh-status-btn').addEventListener('click', async () => {
 $('delete-device-btn')?.addEventListener('click', async () => {
   if (!selectedDevice) return;
   const confirmDelete = confirm(`⚠️ Are you sure you want to DELETE "${selectedDevice.device_name}"?\n\nThis will completely unpair the device from your account. The child's phone app will need to be re-paired manually if you want to monitor it again.`);
-  
+
   if (confirmDelete) {
     const { ok, data } = await apiFetch(`/api/v1/device/${selectedDevice.id}`, 'DELETE');
     if (ok) {
@@ -256,12 +264,25 @@ $('btn-gps').addEventListener('click', async () => {
   // Result arrives via parent WebSocket → handleFrame()
 });
 
+// GPS History button
+$('btn-gps-history')?.addEventListener('click', async () => {
+  const specificDate = $('gps-history-specific').value;
+  const selectDate = $('gps-history-date').value;
+  const dateSpec = specificDate || selectDate; // prefer specific if set
+  
+  if (!dateSpec) return;
+
+  $('btn-gps-history').textContent = 'Req…';
+  await sendCommand('GET_GPS_HISTORY', { date: dateSpec });
+  $('btn-gps-history').textContent = 'Get History';
+});
+
 // Toggle buttons (camera / screen / mic)
 function setupToggleBtn(btnId, startAction, stopAction, streamKey, indicatorId, label) {
   $(btnId).addEventListener('click', async () => {
     const streaming = isStreaming[streamKey];
     const action = streaming ? stopAction : startAction;
-    
+
     // Eagerly hide modal and block incoming zombie frames to prevent UI judder
     if (streaming) {
       if (streamKey === 'camera') {
@@ -368,7 +389,7 @@ function connectParentWS(deviceId) {
   parentWS.onopen = () => {
     console.log(`[WS] Parent connected for device ${deviceId}`);
   };
-  
+
   parentWS.onclose = () => {
     console.log(`[WS] Parent disconnected`);
     parentWS = null;
@@ -378,7 +399,7 @@ function connectParentWS(deviceId) {
       reconnectTimer = setTimeout(() => connectParentWS(deviceId), 3000);
     }
   };
-  
+
   parentWS.onerror = err => console.warn('[WS] Error:', err);
   parentWS.onmessage = evt => handleFrame(evt.data);
 }
@@ -402,6 +423,9 @@ function handleFrame(raw) {
   switch (json.type) {
     case 'gps':
       handleGPS(json);
+      break;
+    case 'gps_history':
+      handleGPSHistory(json);
       break;
     case 'camera_frame':
     case 'screen_frame':
@@ -436,10 +460,75 @@ function handleGPS(data) {
     mapMarker = L.marker([lat, lng]).addTo(mapInstance);
   } else {
     mapInstance.setView([lat, lng], 15);
-    mapMarker.setLatLng([lat, lng]);
+    
+    // If there was a history layer, remove it to show only the live dot
+    if (window.historyLayerGroup) {
+        mapInstance.removeLayer(window.historyLayerGroup);
+        window.historyLayerGroup = null;
+    }
+    
+    if (!mapMarker) {
+        mapMarker = L.marker([lat, lng]).addTo(mapInstance);
+    } else {
+        mapMarker.setLatLng([lat, lng]);
+    }
   }
 
   // Fix Leaflet rendering bug when container was previously display: none
+  setTimeout(() => mapInstance.invalidateSize(), 100);
+}
+
+// ── GPS History ──────────────────────────────────────
+window.historyLayerGroup = null;
+
+function handleGPSHistory(data) {
+  const history = data.data || [];
+  const dateStr = data.date;
+  
+  const result = $('gps-result');
+  if (history.length === 0) {
+    result.textContent = `📍 Tidak ada riwayat GPS untuk tanggal: ${dateStr}`;
+    result.classList.remove('hidden');
+    return;
+  }
+  
+  result.textContent = `📍 Menemukan ${history.length} titik kordinat untuk ${dateStr}`;
+  result.classList.remove('hidden');
+
+  $('gps-modal').classList.remove('hidden');
+  $('modal-gps-coords').textContent = `Showing History: ${dateStr} (${history.length} points)`;
+
+  // Initialize map if needed using first point
+  const first = history[0];
+  if (!mapInstance) {
+    mapInstance = L.map('map').setView([first.lat, first.lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(mapInstance);
+  }
+
+  // Clear previous markers
+  if (mapMarker) { mapInstance.removeLayer(mapMarker); mapMarker = null; }
+  if (window.historyLayerGroup) { mapInstance.removeLayer(window.historyLayerGroup); }
+  
+  window.historyLayerGroup = L.layerGroup().addTo(mapInstance);
+  
+  const latlngs = [];
+  history.forEach((pt, i) => {
+    latlngs.push([pt.lat, pt.lng]);
+    let t = new Date(pt.timestamp).toLocaleTimeString();
+    let m = L.circleMarker([pt.lat, pt.lng], { radius: 4, color: '#3b82f6', fillOpacity: 0.8 })
+      .bindPopup(`Time: ${t}<br>Lat: ${pt.lat}<br>Lng: ${pt.lng}`);
+    window.historyLayerGroup.addLayer(m);
+  });
+  
+  if (latlngs.length > 1) {
+    const polyline = L.polyline(latlngs, {color: '#ef4444', weight: 4, opacity: 0.7}).addTo(window.historyLayerGroup);
+    mapInstance.fitBounds(polyline.getBounds(), { padding: [30, 30] });
+  } else if (latlngs.length === 1) {
+    mapInstance.setView(latlngs[0], 15);
+  }
+
   setTimeout(() => mapInstance.invalidateSize(), 100);
 }
 

@@ -116,10 +116,22 @@
               <span class="control-icon">📍</span>
               <span class="control-label">Location</span>
             </div>
-            <button id="btn-gps" class="btn btn-accent btn-full" data-action="GET_GPS">
+            <button id="btn-gps" class="btn btn-accent btn-full" data-action="GET_GPS" style="margin-bottom: 12px;">
               Get GPS Now
             </button>
-            <div id="gps-result" class="result-text hidden"></div>
+            <div style="display:flex; gap: 8px; margin-bottom: 8px;">
+              <select id="gps-history-date" class="btn btn-ghost" style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text);">
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+              </select>
+            </div>
+            <div style="display:flex; gap: 8px;">
+               <input type="date" id="gps-history-specific" class="btn btn-ghost" style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text);" title="Or pick specific date" />
+               <button id="btn-gps-history" class="btn btn-primary" style="flex:1.5;">
+                 Get History
+               </button>
+            </div>
+            <div id="gps-result" class="result-text hidden" style="margin-top: 12px;"></div>
           </div>
 
           <!-- Camera -->
