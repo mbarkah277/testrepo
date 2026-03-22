@@ -116,7 +116,14 @@ npm install -g pm2 -q
 
 # Start with PM2 from the app directory (so it finds .env and dashboard/).
 cd $APP_DIR
-pm2 start ./familysync-server --name familysync --cwd $APP_DIR
+# Cek terlebih dahulu apakah process 'familysync' sudah eksis. Jika ada, lakukan restart. Jika tidak, lakukan start baru.
+pm2 describe familysync > /dev/null
+if [ $? -eq 0 ]; then
+    pm2 restart familysync
+else
+    pm2 start ./familysync-server --name familysync --cwd $APP_DIR
+fi
+
 pm2 save
 
 # Generate systemd startup script for PM2 auto-restart on boot.
