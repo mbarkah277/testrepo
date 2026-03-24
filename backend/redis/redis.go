@@ -16,7 +16,9 @@ import (
 var Client *redis.Client
 
 // sessionTTL is how long a session key lives without a heartbeat.
-const sessionTTL = 60 * time.Second
+// Dinaikkan ke 5 menit agar device punya cukup waktu untuk restart service
+// dan reconnect WebSocket setelah di-swipe/kill OS.
+const sessionTTL = 5 * 60 * time.Second
 
 // Connect initialises the Redis client using REDIS_ADDR env var.
 func Connect() {
