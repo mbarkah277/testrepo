@@ -125,8 +125,10 @@ func DeviceWSHandler(c *gin.Context) {
 	defer func() {
 		conn.Close()
 		GlobalHub.unregisterDevice(deviceID)
-		redisstore.RemoveSession(c.Request.Context(), deviceID)
-		log.Printf("device [%s] disconnected", deviceID)
+		// JANGAN hapus session Redis di sini — biarkan TTL 60 detik expire sendiri.
+		// Ini memberi waktu device untuk reconnect setelah restart/swipe-close
+		// tanpa status berubah ke offline di dashboard.
+		log.Printf("device [%s] disconnected — session TTL will expire naturally", deviceID)
 	}()
 
 	GlobalHub.registerDevice(deviceID, conn)
